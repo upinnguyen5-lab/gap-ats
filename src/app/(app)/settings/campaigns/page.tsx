@@ -182,7 +182,7 @@ export default function CampaignsPage() {
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tên đợt tuyển dụng <span className="text-red-500">*</span></label>
             <input
               value={form.name}
-              onChange={e => setForm({ name: e.target.value })}
+              onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="VD: Tuyển dụng Backend Tháng 6..."
               className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
