@@ -5,7 +5,7 @@ export async function GET() {
   const apiKey = process.env.GEMINI_API_KEY?.trim()
   if (!apiKey) return NextResponse.json({ error: 'No API key found' })
 
-  return new Promise((resolve) => {
+  return new Promise<NextResponse>((resolve) => {
     https.get(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, (res) => {
       let data = ''
       res.on('data', chunk => data += chunk)
