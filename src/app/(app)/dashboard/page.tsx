@@ -126,7 +126,7 @@ export default function DashboardPage() {
                     </Pie>
                     <Tooltip 
                       formatter={(value: any) => [value, 'Hồ sơ']}
-                      labelFormatter={(label: string) => STATUS_LABELS[label] ?? label}
+                      labelFormatter={(label: any) => STATUS_LABELS[label] ?? label}
                       contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '8px 12px' }}
                     />
                     <Legend 
