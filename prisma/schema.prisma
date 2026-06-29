@@ -1,0 +1,146 @@
+// This is your Prisma schema file for GAP iHouzz ATS
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("hr") // "admin" | "hr" | "interviewer"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  candidates           Candidate[]                @relation("CreatedBy")
+  statusChanges        ApplicationStatusHistory[] @relation("ChangedBy")
+  uploadBatches        CvUploadBatch[]
+  campaigns            Campaign[]                 @relation("CampaignsCreatedBy")
+  tasksAssigned        Task[]                     @relation("TasksAssigned")
+  tasksCreated         Task[]                     @relation("TasksCreatedBy")
+
+  @@map("users")
+}
+
+model Campaign {
+  id          String   @id @default(uuid())
+  name        String
+  isOpen      Boolean  @default(true)
+  kpiTarget   Int      @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy    User          @relation("CampaignsCreatedBy", fields: [createdById], references: [id])
+  applications Application[]
+
+  @@map("campaigns")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  isCompleted Boolean  @default(false)
+  assigneeId  String
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignee    User     @relation("TasksAssigned", fields: [assigneeId], references: [id])
+  createdBy   User     @relation("TasksCreatedBy", fields: [createdById], references: [id])
+
+  @@map("tasks")
+}
+
+
+model Candidate {
+  id              String   @id @default(uuid())
+  fullName        String
+  email           String
+  phone           String?
+  yearsExperience Float?
+  skills          String   @default("[]") // JSON array stored as string
+  notes           String?
+  createdById     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy       User          @relation("CreatedBy", fields: [createdById], references: [id])
+  applications    Application[]
+
+  @@map("candidates")
+}
+
+model Application {
+  id              String   @id @default(uuid())
+  candidateId     String
+  campaignId      String
+  appliedPosition String
+  currentStatus   String   @default("New") // "New" | "Screening" | "Interview" | "Hired" | "Rejected"
+  cvFilePath      String?
+  cvFileName      String?
+  parseStatus     String   @default("pending") // "pending" | "success" | "failed"
+  isDeleted       Boolean  @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  candidate       Candidate       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  campaign        Campaign        @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  statusHistory   ApplicationStatusHistory[]
+  uploadItems     CvUploadItem[]
+
+  @@map("applications")
+}
+
+model ApplicationStatusHistory {
+  id            String   @id @default(uuid())
+  applicationId String
+  fromStatus    String?
+  toStatus      String
+  changedById   String
+  note          String?
+  changedAt     DateTime @default(now())
+
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  changedBy     User        @relation("ChangedBy", fields: [changedById], references: [id])
+
+  @@map("application_status_history")
+}
+
+model CvUploadBatch {
+  id           String   @id @default(uuid())
+  uploadedById String
+  totalFiles   Int      @default(0)
+  successCount Int      @default(0)
+  failedCount  Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  uploadedBy   User           @relation(fields: [uploadedById], references: [id])
+  items        CvUploadItem[]
+
+  @@map("cv_upload_batches")
+}
+
+model CvUploadItem {
+  id            String   @id @default(uuid())
+  batchId       String
+  fileName      String
+  status        String   @default("pending") // "success" | "failed" | "duplicate"
+  errorMessage  String?
+  applicationId String?
+
+  batch         CvUploadBatch @relation(fields: [batchId], references: [id])
+  application   Application?  @relation(fields: [applicationId], references: [id])
+
+  @@map("cv_upload_items")
+}

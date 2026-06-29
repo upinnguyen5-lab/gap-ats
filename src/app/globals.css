@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --sidebar-bg: #0F172A;
+  --sidebar-hover: #1E293B;
+  --sidebar-text: #94A3B8;
+  --sidebar-active-text: #60A5FA;
+  --bg: #F8FAFC;
+  --card: #FFFFFF;
+  --border: #E2E8F0;
+  --text: #1E293B;
+  --text-muted: #64748B;
+  --text-light: #94A3B8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.animate-fade-in    { animation: fadeIn 0.25s ease forwards; }
+.animate-slide-in   { animation: slideInLeft 0.25s ease forwards; }
+.animate-spin       { animation: spin 1s linear infinite; }
+.animate-pulse      { animation: pulse 2s ease-in-out infinite; }
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E8EDF4 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* Drag-and-drop zone */
+.drop-zone {
+  border: 2px dashed #CBD5E1;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+.drop-zone.drag-over {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+
+/* Custom select */
+select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Kanban column */
+.kanban-col {
+  min-height: 200px;
+  transition: background 0.15s;
+}
+.kanban-col.drag-target {
+  background: #F0F9FF;
+  border-color: #38BDF8;
+}
