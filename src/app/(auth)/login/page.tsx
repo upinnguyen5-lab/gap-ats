@@ -46,7 +46,7 @@ export default function LoginPage() {
         {/* Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-2xl bg-white overflow-hidden p-1.5">
-            <img src="/logo.png" alt="GAP" className="w-full h-full object-contain" />
+            <Building2 className="w-10 h-10 text-red-600" />
           </div>
           <h1 className="text-4xl font-black text-white tracking-tight">GAP ATS</h1>
           <p className="text-slate-400 mt-1.5 text-sm">Applicant Tracking System — GAP Global</p>
