@@ -1,3 +1,4 @@
+export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -111,13 +112,13 @@ export async function POST(req: NextRequest) {
       const results: any[] = []
       let successCount = 0, failedCount = 0
 
-      await Promise.all(files.map(async (file) => {
+      for (const file of files) {
         if (!ALLOWED_EXTS.test(file.name) || file.size > MAX_SIZE) {
           failedCount++
           const msg = !ALLOWED_EXTS.test(file.name) ? 'Định dạng không hợp lệ' : 'File quá 5MB'
           results.push({ fileName: file.name, status: 'failed', message: msg })
           await db.cvUploadItem.create({ data: { batchId: batch.id, fileName: file.name, status: 'failed', errorMessage: msg } })
-          return
+          continue
         }
 
         try {
@@ -157,7 +158,7 @@ export async function POST(req: NextRequest) {
             failedCount++
             results.push({ fileName: file.name, status: 'duplicate', message: 'Đã nộp vào đợt này' })
             await db.cvUploadItem.create({ data: { batchId: batch.id, fileName: file.name, status: 'duplicate', errorMessage: 'Duplicate Application' } })
-            return
+            continue
           }
 
           const application = await db.application.create({
@@ -181,7 +182,7 @@ export async function POST(req: NextRequest) {
           failedCount++
           results.push({ fileName: file.name, status: 'failed', message: 'Lỗi xử lý file' })
         }
-      }))
+      }
 
       await db.cvUploadBatch.update({ where: { id: batch.id }, data: { successCount, failedCount } })
       return NextResponse.json({ batchId: batch.id, results, total: files.length, successCount, failedCount })
