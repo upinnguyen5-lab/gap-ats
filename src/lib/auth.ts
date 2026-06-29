@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from 'jose'
 export interface JWTPayload {
   userId: string
   email: string
-  role: 'admin' | 'hr'
+  role: 'admin' | 'hr' | 'interviewer'
   fullName: string
 }
 
