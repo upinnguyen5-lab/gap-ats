@@ -54,9 +54,7 @@ export function Sidebar({ user }: SidebarProps) {
     
     const handleClick = (e: React.MouseEvent) => {
       e.preventDefault()
-      const basePath = '/' + href.split('/')[1]
-      const savedHref = sessionStorage.getItem(`last_visit_${basePath}`)
-      router.push(savedHref || href)
+      router.push(href)
     }
 
     return (
