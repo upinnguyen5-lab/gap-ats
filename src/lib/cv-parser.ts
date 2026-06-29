@@ -11,48 +11,70 @@ export interface ParsedCV {
   success: boolean
 }
 
-function callGeminiREST(prompt: string, base64Data: string, mimeType: string, apiKey: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const payload = JSON.stringify({
-      contents: [{
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType: mimeType, data: base64Data } }
-        ]
-      }]
-    });
-
-    const cleanApiKey = apiKey.trim();
-    const req = https.request({
-      hostname: 'generativelanguage.googleapis.com',
-      port: 443,
-      path: '/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + cleanApiKey,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload)
-      }
-    }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-          try {
-            resolve(JSON.parse(data));
-          } catch (e) {
-            reject(new Error('Invalid JSON response from Google'));
-          }
-        } else {
-          // If gemini-1.5-flash-latest fails, log the full error
-          reject(new Error(`API Error ${res.statusCode}: ${data}`));
-        }
-      });
-    });
-
-    req.on('error', reject);
-    req.write(payload);
-    req.end();
+async function callGeminiREST(prompt: string, base64Data: string, mimeType: string, apiKey: string): Promise<any> {
+  const payload = JSON.stringify({
+    contents: [{
+      parts: [
+        { text: prompt },
+        { inlineData: { mimeType: mimeType, data: base64Data } }
+      ]
+    }]
   });
+
+  const cleanApiKey = apiKey.trim();
+  const modelsToTry = [
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-pro-latest',
+    'gemini-1.5-flash',
+    'gemini-pro'
+  ];
+
+  for (const modelName of modelsToTry) {
+    try {
+      const result = await new Promise<any>((resolve, reject) => {
+        const req = https.request({
+          hostname: 'generativelanguage.googleapis.com',
+          port: 443,
+          path: `/v1beta/models/${modelName}:generateContent?key=${cleanApiKey}`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(payload)
+          }
+        }, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve(JSON.parse(data));
+              } catch (e) {
+                reject(new Error('Invalid JSON response'));
+              }
+            } else {
+              reject(new Error(`Status ${res.statusCode}: ${data}`));
+            }
+          });
+        });
+
+        req.on('error', reject);
+        req.write(payload);
+        req.end();
+      });
+      
+      return result; // Success, return the result
+    } catch (error: any) {
+      console.log(`Model ${modelName} failed:`, error.message);
+      // If it's a 404 (model not found), continue to the next model
+      if (error.message.includes('Status 404')) {
+        continue;
+      }
+      // For other errors (like 400 bad API key), throw immediately
+      throw error;
+    }
+  }
+  
+  throw new Error('All Gemini models returned 404 Not Found. Please check your API key region/permissions.');
 }
 
 export async function parseCV(fileName: string, fullPath?: string): Promise<ParsedCV> {
