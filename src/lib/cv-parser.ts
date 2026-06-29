@@ -23,10 +23,10 @@ async function callGeminiREST(prompt: string, base64Data: string, mimeType: stri
 
   const cleanApiKey = apiKey.trim();
   const modelsToTry = [
-    'gemini-1.5-flash-latest',
-    'gemini-1.5-pro-latest',
-    'gemini-1.5-flash',
-    'gemini-pro'
+    'gemini-2.5-flash',
+    'gemini-flash-latest',
+    'gemini-2.0-flash',
+    'gemini-2.5-pro'
   ];
 
   for (const modelName of modelsToTry) {
