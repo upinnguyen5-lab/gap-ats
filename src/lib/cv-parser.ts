@@ -38,15 +38,30 @@ export async function parseCV(fileName: string, fullPath?: string): Promise<Pars
   "appliedPosition": "Vị trí ứng tuyển phù hợp nhất (string hoặc null)"
 }`
 
-      const result = await model.generateContent([
+      let result
+      const { GoogleAIFileManager } = require('@google/generative-ai/server')
+      const fileManager = new GoogleAIFileManager(apiKey)
+      
+      const uploadResult = await fileManager.uploadFile(fullPath, {
+        mimeType: mimeType,
+        displayName: fileName,
+      })
+      
+      result = await model.generateContent([
         prompt,
         {
-          inlineData: {
-            mimeType,
-            data: base64Data
+          fileData: {
+            fileUri: uploadResult.file.uri,
+            mimeType: uploadResult.file.mimeType
           }
         }
       ])
+      
+      try {
+        await fileManager.deleteFile(uploadResult.file.name)
+      } catch (err) {
+        console.error('Lỗi khi xóa file trên Google AI:', err)
+      }
 
       const responseText = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim()
       console.log('Gemini response:', responseText)
