@@ -61,28 +61,28 @@ export async function parseCV(fileName: string, fullPath?: string): Promise<Pars
         appliedPosition: parsedData.appliedPosition || null,
         success: true
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Lỗi Gemini AI parsing CV:', e)
+      return {
+        fullName: `[LỖI AI] ${String(e.message || e).substring(0, 100)}`,
+        email: `error.${Math.floor(Math.random() * 10000)}@gemini.com`,
+        phone: '0000000000',
+        yearsExperience: 0,
+        skills: ['Lỗi kết nối AI'],
+        appliedPosition: 'Không xác định',
+        success: false
+      }
     }
   }
 
-  // Fallback to mock when no API key or parsing fails
-  const SAMPLE_SKILLS = ['JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'SQL', 'Java', 'Figma', 'Excel', 'PowerBI', 'Agile', 'Scrum', 'Git', 'Marketing Strategy', 'SEO', 'Content Writing', 'Data Analysis']
-  const SAMPLE_NAMES = ['Nguyễn Văn Hùng', 'Trần Thị Lan', 'Lê Hoàng Minh', 'Phạm Thị Thu', 'Hoàng Văn Đức', 'Vũ Thị Hoa', 'Đặng Văn Long', 'Bùi Thị Quỳnh']
-  
-  const name = SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)]
-  const randomId = Math.floor(Math.random() * 90000) + 10000
-  const randomSkills = [...SAMPLE_SKILLS].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 4) + 3)
-  const POSITIONS = ['Software Engineer', 'Marketing Executive', 'Business Analyst', 'Project Manager', 'UX Designer']
-  const appliedPosition = POSITIONS[Math.floor(Math.random() * POSITIONS.length)]
-
+  // Fallback to mock when no API key
   return {
-    fullName: name,
-    email: `ungvien.${randomId}@gmail.com`,
-    phone: `09${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`,
-    yearsExperience: Math.floor(Math.random() * 8) + 1,
-    skills: randomSkills,
-    appliedPosition,
+    fullName: `[LỖI] KHÔNG TÌM THẤY GEMINI_API_KEY`,
+    email: `no-key.${Math.floor(Math.random() * 90000) + 10000}@error.com`,
+    phone: '0000000000',
+    yearsExperience: 0,
+    skills: ['Thiếu API Key'],
+    appliedPosition: 'Chưa cấu hình API Key',
     success: false,
   }
 }
