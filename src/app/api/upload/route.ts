@@ -25,8 +25,7 @@ export async function POST(req: NextRequest) {
     const manualPosition = formData.get('manualPosition') as string
     const campaignId = (formData.get('campaignId') as string) || null
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true })
+    const uploadDir = require('os').tmpdir()
 
     if (!isBulk) {
       const file = formData.get('file') as File
