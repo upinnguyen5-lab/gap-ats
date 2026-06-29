@@ -17,15 +17,16 @@ function callGeminiREST(prompt: string, base64Data: string, mimeType: string, ap
       contents: [{
         parts: [
           { text: prompt },
-          { inline_data: { mime_type: mimeType, data: base64Data } }
+          { inlineData: { mimeType: mimeType, data: base64Data } }
         ]
       }]
     });
 
+    const cleanApiKey = apiKey.trim();
     const req = https.request({
       hostname: 'generativelanguage.googleapis.com',
       port: 443,
-      path: '/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey,
+      path: '/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + cleanApiKey,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,7 +43,8 @@ function callGeminiREST(prompt: string, base64Data: string, mimeType: string, ap
             reject(new Error('Invalid JSON response from Google'));
           }
         } else {
-          reject(new Error(`API Error ${res.statusCode}: ${data.substring(0, 100)}`));
+          // If gemini-1.5-flash-latest fails, log the full error
+          reject(new Error(`API Error ${res.statusCode}: ${data}`));
         }
       });
     });
