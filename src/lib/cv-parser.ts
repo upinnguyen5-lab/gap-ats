@@ -17,18 +17,36 @@ export async function parseCV(fileName: string, fullPath?: string): Promise<Pars
   if (apiKey && fullPath) {
     try {
       const fileBuffer = readFileSync(fullPath)
-      const base64Data = fileBuffer.toString('base64')
       const ext = fileName.split('.').pop()?.toLowerCase()
-
-      // Determine MIME type
-      let mimeType = 'application/pdf'
-      if (ext === 'doc') mimeType = 'application/msword'
-      else if (ext === 'docx') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-
       const genAI = new GoogleGenerativeAI(apiKey)
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+      let result
+      
+      if (ext === 'pdf') {
+        const pdfParse = require('pdf-parse')
+        const pdfData = await pdfParse(fileBuffer)
+        
+        const textPrompt = `Trích xuất thông tin từ đoạn text CV dưới đây. Trả về đúng ĐỊNH DẠNG JSON (không có markdown code block, không giải thích thêm):
+{
+  "fullName": "Tên đầy đủ (string hoặc null)",
+  "email": "Email (string hoặc null)",
+  "phone": "Số điện thoại (string hoặc null)",
+  "yearsExperience": Số năm kinh nghiệm ước tính (number hoặc null),
+  "skills": ["kỹ năng 1", "kỹ năng 2"],
+  "appliedPosition": "Vị trí ứng tuyển phù hợp nhất (string hoặc null)"
+}
 
-      const prompt = `Trích xuất thông tin từ file CV đính kèm. Trả về đúng ĐỊNH DẠNG JSON (không có markdown code block, không giải thích thêm):
+Nội dung CV:
+${pdfData.text.substring(0, 20000)}`
+
+        result = await model.generateContent(textPrompt)
+      } else {
+        // Fallback for doc/docx using inlineData
+        const base64Data = fileBuffer.toString('base64')
+        let mimeType = 'application/msword'
+        if (ext === 'docx') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+        const prompt = `Trích xuất thông tin từ file CV đính kèm. Trả về đúng ĐỊNH DẠNG JSON (không có markdown code block, không giải thích thêm):
 {
   "fullName": "Tên đầy đủ (string hoặc null)",
   "email": "Email (string hoặc null)",
@@ -37,16 +55,11 @@ export async function parseCV(fileName: string, fullPath?: string): Promise<Pars
   "skills": ["kỹ năng 1", "kỹ năng 2"],
   "appliedPosition": "Vị trí ứng tuyển phù hợp nhất (string hoặc null)"
 }`
-
-      const result = await model.generateContent([
-        prompt,
-        {
-          inlineData: {
-            mimeType,
-            data: base64Data
-          }
-        }
-      ])
+        result = await model.generateContent([
+          prompt,
+          { inlineData: { mimeType, data: base64Data } }
+        ])
+      }
 
       const responseText = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim()
       console.log('Gemini response:', responseText)
