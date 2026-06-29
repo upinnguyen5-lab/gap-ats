@@ -30,6 +30,7 @@ export function Sidebar({ user }: SidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [collapsed, setCollapsed] = useState(false)
+  const [settingsExpanded, setSettingsExpanded] = useState(pathname.startsWith('/settings'))
 
   // Save the current URL (with search params) for the active module
   useEffect(() => {
@@ -121,7 +122,41 @@ export function Sidebar({ user }: SidebarProps) {
               </p>
             )}
             {collapsed && <div className="my-2 border-t border-slate-800" />}
-            {adminItems.map(item => <NavLink key={item.href} {...item} />)}
+            
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                if (!settingsExpanded) {
+                  setSettingsExpanded(true)
+                  const savedHref = sessionStorage.getItem('last_visit_/settings')
+                  router.push(savedHref || '/settings/campaigns')
+                } else {
+                  setSettingsExpanded(false)
+                }
+              }}
+              className={cn(
+                'flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all group',
+                collapsed && 'justify-center px-2',
+                pathname.startsWith('/settings')
+                  ? 'bg-red-950/30 text-red-400'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <Settings className={cn('w-5 h-5 flex-shrink-0 transition-colors', pathname.startsWith('/settings') ? 'text-red-400' : 'text-slate-400 group-hover:text-slate-200')} />
+                {!collapsed && <span className="text-sm font-medium">Cài đặt hệ thống</span>}
+              </div>
+              {!collapsed && (
+                <ChevronRight className={cn('w-4 h-4 transition-transform', settingsExpanded && 'rotate-90')} />
+              )}
+            </a>
+
+            {settingsExpanded && !collapsed && (
+              <div className="pl-4 mt-1 space-y-0.5 border-l border-slate-800 ml-4">
+                {adminItems.map(item => <NavLink key={item.href} {...item} />)}
+              </div>
+            )}
           </>
         )}
       </nav>
