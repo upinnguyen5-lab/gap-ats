@@ -69,6 +69,11 @@ export default function CandidateDetailPage() {
   const [cloneLoading, setCloneLoading] = useState(false)
   const [cloneError, setCloneError] = useState('')
 
+  const [showEditPosModal, setShowEditPosModal] = useState(false)
+  const [editPosAppId, setEditPosAppId] = useState('')
+  const [newPosition, setNewPosition] = useState('')
+  const [editPosLoading, setEditPosLoading] = useState(false)
+
   const fetchCandidate = () => {
     fetch(`/api/candidates/${id}`)
       .then(r => r.json())
@@ -193,6 +198,24 @@ export default function CandidateDetailPage() {
       setCloneError(d.error)
     }
     setCloneLoading(false)
+  }
+
+  const handleEditPosition = async () => {
+    if (!newPosition) return
+    setEditPosLoading(true)
+    const res = await fetch(`/api/applications/${editPosAppId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appliedPosition: newPosition })
+    })
+    if (res.ok) {
+      toast.success('Đã cập nhật vị trí ứng tuyển')
+      setShowEditPosModal(false)
+      fetchCandidate()
+    } else {
+      toast.error('Lỗi khi cập nhật vị trí')
+    }
+    setEditPosLoading(false)
   }
 
   if (loading) return (
@@ -358,8 +381,15 @@ export default function CandidateDetailPage() {
                 <div key={app.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div>
-                      <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                      <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2 group/pos">
                         {app.appliedPosition}
+                        <button 
+                          onClick={() => { setEditPosAppId(app.id); setNewPosition(app.appliedPosition); setShowEditPosModal(true); }}
+                          className="opacity-0 group-hover/pos:opacity-100 p-1 text-slate-400 hover:text-blue-600 transition-all rounded-md hover:bg-blue-50"
+                          title="Đổi vị trí"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
                         {app.rawAppliedPosition && (
                           <span className="relative group">
                             <AlertTriangle className="w-4 h-4 text-amber-500 cursor-help" />
@@ -569,6 +599,24 @@ export default function CandidateDetailPage() {
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setShowCloneModal(false)}>Hủy</Button>
             <Button onClick={handleClone} loading={cloneLoading}>Tạo đơn ứng tuyển</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Position Modal */}
+      <Modal open={showEditPosModal} onClose={() => setShowEditPosModal(false)} title="Đổi vị trí ứng tuyển" size="sm">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Chọn vị trí mới</label>
+            <select value={newPosition} onChange={e => setNewPosition(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">
+              <option value="">Chọn vị trí...</option>
+              {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setShowEditPosModal(false)}>Hủy</Button>
+            <Button onClick={handleEditPosition} loading={editPosLoading} disabled={!newPosition}>Cập nhật</Button>
           </div>
         </div>
       </Modal>
