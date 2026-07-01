@@ -141,6 +141,17 @@ export default function DashboardPage() {
                       verticalAlign="bottom" 
                       height={36}
                       iconType="circle"
+                      payload={
+                        [...distribution.filter(d => d.count > 0)].sort((a, b) => {
+                          const statusOrder = ['New', 'Screening', 'Interview', 'Hired', 'Rejected'];
+                          return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+                        }).map((entry) => ({
+                          id: entry.status,
+                          type: 'circle',
+                          value: entry.status,
+                          color: STATUS_COLORS[entry.status] ?? '#9CA3AF'
+                        })) as any
+                      }
                       formatter={(value: string) => <span className="text-xs text-slate-600 font-medium ml-1">{STATUS_LABELS[value] ?? value}</span>}
                     />
                   </PieChart>
