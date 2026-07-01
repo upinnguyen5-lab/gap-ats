@@ -138,11 +138,11 @@ export default function DashboardPage() {
                       contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '8px 12px' }}
                     />
                     <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      payload={
-                        [...distribution.filter(d => d.count > 0)].sort((a, b) => {
+                      {...({
+                        verticalAlign: "bottom",
+                        height: 36,
+                        iconType: "circle",
+                        payload: [...distribution.filter(d => d.count > 0)].sort((a, b) => {
                           const statusOrder = ['New', 'Screening', 'Interview', 'Hired', 'Rejected'];
                           return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
                         }).map((entry) => ({
@@ -150,9 +150,9 @@ export default function DashboardPage() {
                           type: 'circle',
                           value: entry.status,
                           color: STATUS_COLORS[entry.status] ?? '#9CA3AF'
-                        })) as any
-                      }
-                      formatter={(value: string) => <span className="text-xs text-slate-600 font-medium ml-1">{STATUS_LABELS[value] ?? value}</span>}
+                        })),
+                        formatter: (value: string) => <span className="text-xs text-slate-600 font-medium ml-1">{STATUS_LABELS[value] ?? value}</span>
+                      } as any)}
                     />
                   </PieChart>
                 </ResponsiveContainer>

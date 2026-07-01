@@ -1,5 +1,9 @@
 import { readFileSync } from 'fs'
 import https from 'https'
+// @ts-ignore
+import mammoth from 'mammoth'
+// @ts-ignore
+import WordExtractor from 'word-extractor'
 
 export interface ParsedCV {
   fullName: string | null
@@ -11,13 +15,10 @@ export interface ParsedCV {
   success: boolean
 }
 
-async function callGeminiREST(prompt: string, base64Data: string, mimeType: string, apiKey: string): Promise<any> {
+async function callGeminiREST(prompt: string, payloadContent: any, apiKey: string): Promise<any> {
   const payload = JSON.stringify({
     contents: [{
-      parts: [
-        { text: prompt },
-        { inlineData: { mimeType: mimeType, data: base64Data } }
-      ]
+      parts: Array.isArray(payloadContent) ? payloadContent : [payloadContent]
     }]
   });
 
@@ -86,10 +87,18 @@ export async function parseCV(fileName: string, fullPath?: string): Promise<Pars
       const base64Data = fileBuffer.toString('base64')
       const ext = fileName.split('.').pop()?.toLowerCase()
 
-      // Determine MIME type
+      let textContent = ''
       let mimeType = 'application/pdf'
-      if (ext === 'doc') mimeType = 'application/msword'
-      else if (ext === 'docx') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      
+      // Determine processing method based on extension
+      if (ext === 'docx') {
+        const result = await mammoth.extractRawText({ path: fullPath })
+        textContent = result.value
+      } else if (ext === 'doc') {
+        const extractor = new WordExtractor()
+        const extracted = await extractor.extract(fullPath)
+        textContent = extracted.getBody()
+      }
 
       const prompt = `Trích xuất thông tin từ file CV đính kèm. Trả về đúng ĐỊNH DẠNG JSON (không có markdown code block, không giải thích thêm):
 {
@@ -101,7 +110,22 @@ export async function parseCV(fileName: string, fullPath?: string): Promise<Pars
   "appliedPosition": "Vị trí ứng tuyển phù hợp nhất (string hoặc null)"
 }`
 
-      const jsonResponse = await callGeminiREST(prompt, base64Data, mimeType, apiKey)
+      let payloadParts: any[]
+      if (textContent) {
+        // For text-extracted files (doc, docx)
+        payloadParts = [
+          { text: prompt },
+          { text: `\n\n--- NỘI DUNG CV ---\n\n${textContent}` }
+        ]
+      } else {
+        // For PDF, use inlineData
+        payloadParts = [
+          { text: prompt },
+          { inlineData: { mimeType: mimeType, data: base64Data } }
+        ]
+      }
+
+      const jsonResponse = await callGeminiREST(prompt, payloadParts, apiKey)
       
       const textOutput = jsonResponse.candidates?.[0]?.content?.parts?.[0]?.text || ''
       const responseText = textOutput.replace(/```json/g, '').replace(/```/g, '').trim()
