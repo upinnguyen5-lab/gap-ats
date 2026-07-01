@@ -34,8 +34,8 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Admin-only route guard
-  if (pathname.startsWith('/settings') && payload.role !== 'admin') {
+  // Admin/HR Manager route guard
+  if (pathname.startsWith('/settings') && payload.role !== 'admin' && payload.role !== 'hr_manager') {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
