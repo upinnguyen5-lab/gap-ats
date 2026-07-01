@@ -7,8 +7,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { STATUS_LIST, STATUS_LABELS } from '@/lib/utils'
-import { Search, GripVertical, ChevronRight, AlertTriangle } from 'lucide-react'
+import { formatRelativeTime, STATUS_LABELS, STATUS_LIST, POSITIONS } from '@/lib/utils'
+import { Search, GripVertical, ChevronRight, AlertTriangle, AlertCircle } from 'lucide-react'
 
 interface Application {
   id: string; currentStatus: string; appliedPosition: string; rawAppliedPosition: string | null; createdAt: string; candidateId: string;
@@ -219,17 +219,25 @@ export default function PipelinePage() {
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-semibold text-slate-800 truncate">{a.candidate.fullName}</p>
-                            <p className="text-xs text-slate-500 truncate mt-0.5 flex items-center gap-1">
+                            <div className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">
                               {a.appliedPosition}
                               {a.rawAppliedPosition && (
-                                <span className="relative group/tip">
-                                  <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0 cursor-help" />
-                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-md whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50">
+                                <span className="relative group/tooltip">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500 cursor-help" />
+                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50">
                                     AI: "{a.rawAppliedPosition}"
                                   </span>
                                 </span>
                               )}
-                            </p>
+                              {!POSITIONS.includes(a.appliedPosition) && (
+                                <span className="relative group/tooltip">
+                                  <AlertCircle className="w-3.5 h-3.5 text-red-500 cursor-help" />
+                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50">
+                                    Cần xem lại (Vị trí không có sẵn)
+                                  </span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                           {!isClosed && <GripVertical className="w-4 h-4 text-slate-300 flex-shrink-0 mt-0.5 group-hover:text-slate-400 transition-colors" />}
                         </div>

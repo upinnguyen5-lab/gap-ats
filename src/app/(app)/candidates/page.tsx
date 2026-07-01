@@ -7,8 +7,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { SkeletonTable } from '@/components/ui/Skeleton'
-import { formatDate, POSITIONS, STATUS_LIST } from '@/lib/utils'
-import { Search, Upload, Eye, Trash2, X, Filter, ChevronLeft, ChevronRight, CheckCircle, ChevronDown, AlertTriangle } from 'lucide-react'
+import { formatDateTime, formatRelativeTime, STATUS_LABELS, STATUS_LIST, formatDate, POSITIONS } from '@/lib/utils'
+import { Search, Upload, Eye, Trash2, X, Filter, ChevronLeft, ChevronRight, CheckCircle, ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Candidate {
@@ -305,12 +305,20 @@ export default function CandidatesPage() {
                                   <div className="flex items-center gap-1">
                                     <span className="text-xs font-semibold text-slate-700 truncate">{app.appliedPosition}</span>
                                     {app.rawAppliedPosition && (
-                                      <div className="group/tt relative flex items-center">
-                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 cursor-help" />
-                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/tt:block z-10 w-48 text-center bg-slate-800 text-white text-[10px] rounded-lg py-1 px-2 shadow-xl whitespace-normal break-words">
+                                      <span className="relative group">
+                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 cursor-help flex-shrink-0" />
+                                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-50">
                                           AI chuẩn hóa từ: <strong className="text-amber-300">{app.rawAppliedPosition}</strong>
-                                        </div>
-                                      </div>
+                                        </span>
+                                      </span>
+                                    )}
+                                    {!POSITIONS.includes(app.appliedPosition) && (
+                                      <span className="relative group">
+                                        <AlertCircle className="w-3.5 h-3.5 text-red-500 cursor-help flex-shrink-0" />
+                                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-50">
+                                          Cần xem lại (Vị trí không có sẵn)
+                                        </span>
+                                      </span>
                                     )}
                                   </div>
                                   <span className="text-[10px] text-slate-400 truncate">{app.campaign?.name || 'Không rõ'}</span>

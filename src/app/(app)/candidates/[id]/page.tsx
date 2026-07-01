@@ -398,6 +398,14 @@ export default function CandidateDetailPage() {
                             </span>
                           </span>
                         )}
+                        {!POSITIONS.includes(app.appliedPosition) && (
+                          <span className="relative group">
+                            <AlertCircle className="w-4 h-4 text-red-500 cursor-help" />
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                              Cần xem lại (Vị trí chưa được chuẩn hóa)
+                            </span>
+                          </span>
+                        )}
                       </h3>
                       <p className="text-sm text-slate-500 flex items-center gap-2 mt-1">
                         <Tag className="w-3.5 h-3.5" />
