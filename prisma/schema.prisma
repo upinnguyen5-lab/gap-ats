@@ -25,6 +25,7 @@ model User {
   campaigns            Campaign[]                 @relation("CampaignsCreatedBy")
   tasksAssigned        Task[]                     @relation("TasksAssigned")
   tasksCreated         Task[]                     @relation("TasksCreatedBy")
+  positionsCreated     Position[]                 @relation("PositionsCreatedBy")
 
   @@map("users")
 }
@@ -60,6 +61,19 @@ model Task {
   @@map("tasks")
 }
 
+model Position {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User     @relation("PositionsCreatedBy", fields: [createdById], references: [id])
+
+  @@map("positions")
+}
 
 model Candidate {
   id              String   @id @default(uuid())

@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const token = req.cookies.get('gap_ats_token')?.value
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const payload = await verifyToken(token)
-  if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!payload || payload.role === 'hiring') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const deletedApps = await db.application.findMany({
     where: { isDeleted: true },
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const token = req.cookies.get('gap_ats_token')?.value
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const payload = await verifyToken(token)
-  if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!payload || payload.role === 'hiring') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { candidateId } = await req.json()
   // candidateId here is actually applicationId based on the new logic

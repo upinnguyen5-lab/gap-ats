@@ -2,10 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { cn, ROLE_LABELS } from '@/lib/utils'
-import {
-  LayoutDashboard, Upload, Users, GitBranch, Settings,
-  LogOut, Building2, ChevronLeft, ChevronRight, Trash2,
-} from 'lucide-react'
+import { LayoutDashboard, Users, GitBranch, Upload, Settings, ChevronRight, LogOut, ChevronLeft, Building2, Trash2, CheckCircle2, Briefcase } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 interface SidebarProps {
@@ -122,8 +119,8 @@ export function Sidebar({ user }: SidebarProps) {
           return <NavLink key={item.href} {...item} />
         })}
 
-        {/* Admin/Manager section */}
-        {['admin', 'hr_manager'].includes(user.role) && (
+        {/* Admin/Manager/HR section */}
+        {['admin', 'hr_manager', 'hr'].includes(user.role) && (
           <>
             {!collapsed && (
               <p className="text-slate-600 text-xs font-semibold px-3 pt-4 pb-2 uppercase tracking-widest">
@@ -132,14 +129,18 @@ export function Sidebar({ user }: SidebarProps) {
             )}
             {collapsed && <div className="my-2 border-t border-slate-800" />}
             
-            <NavLink href="/settings/campaigns" icon={Building2} label="Đợt tuyển dụng" />
-            
-            {user.role === 'admin' && (
+            {['admin', 'hr_manager'].includes(user.role) && (
               <>
-                <NavLink href="/settings/users" icon={Settings} label="Phân quyền" />
-                <NavLink href="/settings/recycle" icon={Trash2} label="Thùng rác" />
+                <NavLink href="/settings/campaigns" icon={Building2} label="Đợt tuyển dụng" />
+                <NavLink href="/settings/positions" icon={Briefcase} label="Vị trí công việc" />
               </>
             )}
+            
+            {user.role === 'admin' && (
+              <NavLink href="/settings/users" icon={Settings} label="Phân quyền" />
+            )}
+            
+            <NavLink href="/settings/recycle" icon={Trash2} label="Thùng rác" />
           </>
         )}
       </nav>

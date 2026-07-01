@@ -34,9 +34,17 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Admin/HR Manager route guard
-  if (pathname.startsWith('/settings') && payload.role !== 'admin' && payload.role !== 'hr_manager') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  // Settings route guard
+  if (pathname.startsWith('/settings')) {
+    if (payload.role === 'hiring') return NextResponse.redirect(new URL('/dashboard', req.url))
+    
+    if (pathname.startsWith('/settings/users') && payload.role !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+    
+    if ((pathname.startsWith('/settings/campaigns') || pathname.startsWith('/settings/positions')) && payload.role !== 'admin' && payload.role !== 'hr_manager') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
   }
 
   return NextResponse.next()

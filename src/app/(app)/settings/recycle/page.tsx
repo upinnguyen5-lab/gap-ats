@@ -57,7 +57,7 @@ export default function RecycleBinPage() {
           <div>
             <p className="text-sm font-semibold text-amber-800">Hồ sơ đã xóa</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Chỉ Admin mới có thể xem và khôi phục hồ sơ từ thùng rác.
+              Tất cả các thành viên (trừ Hiring) đều có thể xem và khôi phục hồ sơ từ thùng rác.
               Hồ sơ sẽ được khôi phục về trạng thái hiện tại trước khi xóa.
             </p>
           </div>
