@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { db } from '@/lib/db'
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const token = req.cookies.get('gap_ats_token')?.value
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const payload = await verifyToken(token)
@@ -11,10 +11,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const { name, description, isActive } = await req.json()
+  const { id } = await params
 
   try {
     const pos = await db.position.update({
-      where: { id: params.id },
+      where: { id },
       data: { name, description, isActive }
     })
     return NextResponse.json({ position: pos })
@@ -26,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const token = req.cookies.get('gap_ats_token')?.value
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const payload = await verifyToken(token)
@@ -34,8 +35,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const { id } = await params
+
   try {
-    await db.position.delete({ where: { id: params.id } })
+    await db.position.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
     return NextResponse.json({ error: 'Không thể xóa vị trí này' }, { status: 500 })
