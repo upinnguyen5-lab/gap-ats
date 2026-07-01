@@ -27,3 +27,22 @@ export async function PATCH(req: NextRequest, { params }: Props) {
   })
   return NextResponse.json({ user })
 }
+
+export async function DELETE(req: NextRequest, { params }: Props) {
+  const token = req.cookies.get('gap_ats_token')?.value
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const payload = await verifyToken(token)
+  if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { id } = await params
+
+  try {
+    await db.user.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    if (error.code === 'P2003') {
+      return NextResponse.json({ error: 'Tài khoản này đã có dữ liệu (ứng viên, đợt tuyển dụng,...) nên không thể xóa. Vui lòng sử dụng tính năng Khóa tài khoản.' }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Không thể xóa tài khoản này' }, { status: 500 })
+  }
+}

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { SkeletonTable } from '@/components/ui/Skeleton'
 import { formatDate, ROLE_LABELS } from '@/lib/utils'
-import { Plus, UserCheck, UserX, Key, Copy } from 'lucide-react'
+import { Plus, UserCheck, UserX, Key, Copy, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface User {
   id: string
@@ -76,6 +77,18 @@ export default function UsersPage() {
     })
     const data = await res.json()
     if (res.ok) setUsers(prev => prev.map(u => u.id === id ? data.user : u))
+  }
+
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này? Thao tác này không thể hoàn tác.')) return
+    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Đã xóa tài khoản thành công')
+      setUsers(prev => prev.filter(u => u.id !== id))
+    } else {
+      const data = await res.json()
+      toast.error(data.error || 'Có lỗi xảy ra khi xóa tài khoản')
+    }
   }
 
   const handleRoleChange = async (id: string, role: string) => {
@@ -204,13 +217,22 @@ export default function UsersPage() {
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">{formatDate(u.createdAt)}</td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleToggleActive(u.id, u.isActive)}
-                          className={`p-2 rounded-xl transition-colors ${u.isActive ? 'hover:bg-red-50 text-slate-400 hover:text-red-500' : 'hover:bg-green-50 text-slate-400 hover:text-green-600'}`}
-                          title={u.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
-                        >
-                          {u.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleActive(u.id, u.isActive)}
+                            className={`p-2 rounded-xl transition-colors ${u.isActive ? 'hover:bg-amber-50 text-slate-400 hover:text-amber-500' : 'hover:bg-green-50 text-slate-400 hover:text-green-600'}`}
+                            title={u.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+                          >
+                            {u.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(u.id)}
+                            className="p-2 rounded-xl transition-colors hover:bg-red-50 text-slate-400 hover:text-red-500"
+                            title="Xóa tài khoản"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
