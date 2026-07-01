@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { SkeletonTable } from '@/components/ui/Skeleton'
 import { formatDate, POSITIONS, STATUS_LIST } from '@/lib/utils'
-import { Search, Upload, Eye, Trash2, X, Filter, ChevronLeft, ChevronRight, CheckCircle, ChevronDown } from 'lucide-react'
+import { Search, Upload, Eye, Trash2, X, Filter, ChevronLeft, ChevronRight, CheckCircle, ChevronDown, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Candidate {
@@ -302,7 +302,17 @@ export default function CandidatesPage() {
                             c.applications?.map(app => (
                               <div key={app.id} className="flex items-center justify-between gap-2 border border-slate-100 p-2 rounded-lg bg-slate-50 hover:border-blue-100 transition-colors">
                                 <div className="flex flex-col min-w-0 flex-1">
-                                  <span className="text-xs font-semibold text-slate-700 truncate">{app.appliedPosition}</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs font-semibold text-slate-700 truncate">{app.appliedPosition}</span>
+                                    {app.rawAppliedPosition && (
+                                      <div className="group/tt relative flex items-center">
+                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 cursor-help" />
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/tt:block z-10 w-48 text-center bg-slate-800 text-white text-[10px] rounded-lg py-1 px-2 shadow-xl whitespace-normal break-words">
+                                          AI chuẩn hóa từ: <strong className="text-amber-300">{app.rawAppliedPosition}</strong>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                   <span className="text-[10px] text-slate-400 truncate">{app.campaign?.name || 'Không rõ'}</span>
                                 </div>
                                 <StatusBadge status={app.currentStatus} />
