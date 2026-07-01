@@ -40,7 +40,21 @@ export async function PATCH(req: NextRequest, { params }: Props) {
 
   const body = await req.json()
   
-  if (body.appliedPosition) {
+  if (body.appliedPosition && body.appliedPosition !== application.appliedPosition) {
+    // Check for duplicates
+    const existing = await db.application.findFirst({
+      where: {
+        candidateId: application.candidateId,
+        campaignId: application.campaignId,
+        appliedPosition: body.appliedPosition,
+        isDeleted: false
+      }
+    })
+
+    if (existing) {
+      return NextResponse.json({ error: 'Ứng viên này đã ứng tuyển vị trí này trong cùng đợt rồi.' }, { status: 400 })
+    }
+
     await db.application.update({
       where: { id },
       data: { appliedPosition: body.appliedPosition }

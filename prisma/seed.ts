@@ -140,7 +140,10 @@ async function main() {
 
     // Add multi-position example: candidate 0 and 3 apply for 2 positions in same campaign
     if (i === 0 || i === 3) {
-      const secondPosition = i === 0 ? 'Data Analyst' : 'Project Manager'
+      let secondPosition = i === 0 ? 'Data Analyst' : 'Project Manager'
+      if (secondPosition === finalPosition) {
+        secondPosition = 'Marketing Executive' // Fallback to avoid duplicate
+      }
       const app2 = await prisma.application.create({
         data: {
           candidateId: candidate.id,
