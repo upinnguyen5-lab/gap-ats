@@ -16,7 +16,7 @@ interface Candidate {
   skills: string[]; yearsExperience: number | null;
   createdAt: string; createdBy: { fullName: string }
   applications: {
-    id: string; appliedPosition: string; currentStatus: string;
+    id: string; appliedPosition: string; rawAppliedPosition: string | null; currentStatus: string;
     campaign: { name: string; isOpen: boolean } | null
   }[]
 }
