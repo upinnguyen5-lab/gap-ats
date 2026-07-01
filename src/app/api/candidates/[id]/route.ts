@@ -20,7 +20,10 @@ export async function GET(req: NextRequest, { params }: Props) {
     include: {
       createdBy: { select: { fullName: true, email: true } },
       applications: {
-        where: { isDeleted: false },
+        where: { 
+          isDeleted: false,
+          ...(payload.role === 'hiring' ? { currentStatus: { in: ['Interview', 'Hired', 'Rejected'] } } : {})
+        },
         include: {
           campaign: { select: { name: true, isOpen: true } },
           statusHistory: {

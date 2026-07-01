@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
-import { signToken } from '@/lib/auth'
+import { signToken, JWTPayload } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const token = await signToken({
       userId: user.id,
       email: user.email,
-      role: user.role as 'admin' | 'hr',
+      role: user.role as JWTPayload['role'],
       fullName: user.fullName,
     })
 

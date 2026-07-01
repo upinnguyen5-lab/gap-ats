@@ -22,6 +22,13 @@ export async function POST(req: NextRequest, { params }: Props) {
     return NextResponse.json({ error: 'Trạng thái không thay đổi' }, { status: 400 })
   }
 
+  if (payload.role === 'hiring') {
+    const allowedStatuses = ['Interview', 'Hired', 'Rejected']
+    if (!allowedStatuses.includes(application.currentStatus) || !allowedStatuses.includes(toStatus)) {
+      return NextResponse.json({ error: 'Forbidden: Bạn chỉ được thay đổi các hồ sơ từ vòng Phỏng vấn trở đi' }, { status: 403 })
+    }
+  }
+
   const updated = await db.application.update({
     where: { id },
     data: { currentStatus: toStatus },

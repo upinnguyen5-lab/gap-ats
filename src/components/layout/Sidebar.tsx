@@ -117,10 +117,13 @@ export function Sidebar({ user }: SidebarProps) {
           </p>
         )}
 
-        {navItems.map(item => <NavLink key={item.href} {...item} />)}
+        {navItems.map(item => {
+          if (user.role === 'hiring' && item.href === '/upload') return null;
+          return <NavLink key={item.href} {...item} />
+        })}
 
-        {/* Admin-only section */}
-        {user.role === 'admin' && (
+        {/* Admin/Manager section */}
+        {['admin', 'hr_manager'].includes(user.role) && (
           <>
             {!collapsed && (
               <p className="text-slate-600 text-xs font-semibold px-3 pt-4 pb-2 uppercase tracking-widest">
@@ -128,7 +131,15 @@ export function Sidebar({ user }: SidebarProps) {
               </p>
             )}
             {collapsed && <div className="my-2 border-t border-slate-800" />}
-            {adminItems.map(item => <NavLink key={item.href} {...item} />)}
+            
+            <NavLink href="/settings/campaigns" icon={Building2} label="Đợt tuyển dụng" />
+            
+            {user.role === 'admin' && (
+              <>
+                <NavLink href="/settings/users" icon={Settings} label="Phân quyền" />
+                <NavLink href="/settings/recycle" icon={Trash2} label="Thùng rác" />
+              </>
+            )}
           </>
         )}
       </nav>

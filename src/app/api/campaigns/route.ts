@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   const payload = await verifyToken(token)
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   
-  if (payload.role !== 'admin') {
+  if (payload.role !== 'admin' && payload.role !== 'hr_manager') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

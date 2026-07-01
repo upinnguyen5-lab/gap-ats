@@ -59,6 +59,12 @@ async function main() {
   const hr2 = await prisma.user.create({
     data: { fullName: 'Lê Văn Minh', email: 'minh.le@gapsoftware.asia', passwordHash: hrPassword, role: 'hr' },
   })
+  const hrManager = await prisma.user.create({
+    data: { fullName: 'Phạm Thị Lan', email: 'lan.pham@gapsoftware.asia', passwordHash: hrPassword, role: 'hr_manager' },
+  })
+  const hiringMgr = await prisma.user.create({
+    data: { fullName: 'Trương Văn Tùng', email: 'tung.truong@gapsoftware.asia', passwordHash: hrPassword, role: 'hiring' },
+  })
 
   // Create Campaigns
   const campaign1 = await prisma.campaign.create({
@@ -77,7 +83,7 @@ async function main() {
     'Phan Văn Tuấn', 'Cao Thị Uyên', 'Mai Văn Vinh', 'Hà Thị Xuân',
   ]
 
-  const users = [admin, hr1, hr2]
+  const users = [admin, hr1, hr2, hrManager]
   const applications = []
 
   // Create Candidates and their Applications
@@ -103,11 +109,26 @@ async function main() {
       },
     })
 
+    // Simulate AI auto-normalization for some candidates
+    const AI_NORMALIZED_EXAMPLES: Record<number, { raw: string; normalized: string }> = {
+      2:  { raw: 'FE Developer', normalized: 'Software Engineer' },
+      5:  { raw: 'Digital Marketer', normalized: 'Marketing Executive' },
+      8:  { raw: 'Kỹ sư phần mềm', normalized: 'Software Engineer' },
+      11: { raw: 'Chuyên viên phân tích', normalized: 'Business Analyst' },
+      14: { raw: 'Thiết kế UI/UX', normalized: 'UX Designer' },
+      17: { raw: 'Nhân viên kế toán', normalized: 'Finance Executive' },
+    }
+
+    const aiExample = AI_NORMALIZED_EXAMPLES[i]
+    const finalPosition = aiExample ? aiExample.normalized : position
+    const rawPosition = aiExample ? aiExample.raw : null
+
     const app = await prisma.application.create({
       data: {
         candidateId: candidate.id,
         campaignId: campaign.id,
-        appliedPosition: position,
+        appliedPosition: finalPosition,
+        rawAppliedPosition: rawPosition,
         currentStatus: status,
         cvFileName: `CV_${name.replace(/\s/g, '_')}.pdf`,
         cvFilePath: `/uploads/sample_cv_${i + 1}.pdf`,
@@ -116,6 +137,22 @@ async function main() {
       }
     })
     applications.push(app)
+
+    // Add multi-position example: candidate 0 and 3 apply for 2 positions in same campaign
+    if (i === 0 || i === 3) {
+      const secondPosition = i === 0 ? 'Data Analyst' : 'Project Manager'
+      const app2 = await prisma.application.create({
+        data: {
+          candidateId: candidate.id,
+          campaignId: campaign.id,
+          appliedPosition: secondPosition,
+          currentStatus: 'New',
+          parseStatus: 'success',
+          createdAt: new Date(candidate.createdAt.getTime() + 2 * 24 * 60 * 60 * 1000),
+        }
+      })
+      applications.push(app2)
+    }
   }
 
   console.log('✅ Created 20 candidates and applications')
@@ -162,10 +199,11 @@ async function main() {
 
   console.log('\n🎉 Seed completed successfully!')
   console.log('\n📋 Login credentials:')
-  console.log('  Admin:    admin@gapsoftware.asia    / Admin@123')
-  console.log('  HR 1:     huong.tran@gapsoftware.asia / Hr@123456')
-  console.log('  HR 2:     minh.le@gapsoftware.asia    / Hr@123456')
-  console.log('  Viewer:   tung.pham@gapsoftware.asia  / Hr@123456')
+  console.log('  Admin:       admin@gapsoftware.asia        / Admin@123')
+  console.log('  HR:          huong.tran@gapsoftware.asia   / Hr@123456')
+  console.log('  HR:          minh.le@gapsoftware.asia      / Hr@123456')
+  console.log('  HR Manager:  lan.pham@gapsoftware.asia     / Hr@123456')
+  console.log('  Hiring Mgr:  tung.truong@gapsoftware.asia  / Hr@123456')
 }
 
 main()

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -83,7 +83,8 @@ model Application {
   id              String   @id @default(uuid())
   candidateId     String
   campaignId      String
-  appliedPosition String
+  appliedPosition    String
+  rawAppliedPosition String?   // Vị trí gốc AI trích xuất (trước khi chuẩn hóa)
   currentStatus   String   @default("New") // "New" | "Screening" | "Interview" | "Hired" | "Rejected"
   cvFilePath      String?
   cvFileName      String?

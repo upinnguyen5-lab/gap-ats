@@ -46,13 +46,17 @@ export async function GET(req: NextRequest) {
         ...(campaignId ? { campaignId } : {}),
         ...(status ? { currentStatus: status } : {}),
         ...(position ? { appliedPosition: { contains: position } } : {}),
-        isDeleted: false
+        isDeleted: false,
+        ...(payload.role === 'hiring' ? { currentStatus: { in: ['Interview', 'Hired', 'Rejected'] } } : {})
       }
     }
   } else {
     // If no specific filters, still only show candidates that have at least one active application
     where.applications = {
-      some: { isDeleted: false }
+      some: { 
+        isDeleted: false,
+        ...(payload.role === 'hiring' ? { currentStatus: { in: ['Interview', 'Hired', 'Rejected'] } } : {})
+      }
     }
   }
 
@@ -65,7 +69,10 @@ export async function GET(req: NextRequest) {
       include: {
         createdBy: { select: { fullName: true } },
         applications: {
-          where: { isDeleted: false },
+          where: { 
+            isDeleted: false,
+            ...(payload.role === 'hiring' ? { currentStatus: { in: ['Interview', 'Hired', 'Rejected'] } } : {})
+          },
           include: { campaign: { select: { name: true, isOpen: true } } }
         }
       },
@@ -109,7 +116,7 @@ export async function POST(req: NextRequest) {
   }
 
   const existingApp = await db.application.findFirst({
-    where: { candidateId: candidate.id, campaignId, isDeleted: false }
+    where: { candidateId: candidate.id, campaignId, appliedPosition, isDeleted: false }
   })
 
   if (existingApp) {
@@ -141,7 +148,7 @@ export async function DELETE(req: NextRequest) {
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const payload = await verifyToken(token)
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  if (payload.role === 'interviewer') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (payload.role === 'hiring') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   try {
     const { ids } = await req.json()

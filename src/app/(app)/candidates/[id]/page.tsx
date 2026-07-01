@@ -19,7 +19,7 @@ interface StatusHistory {
   changedAt: string; changedBy: { fullName: string; role: string }
 }
 interface Application {
-  id: string; appliedPosition: string; currentStatus: string; cvFileName: string | null; cvFilePath: string | null
+  id: string; appliedPosition: string; rawAppliedPosition: string | null; currentStatus: string; cvFileName: string | null; cvFilePath: string | null
   parseStatus: string; createdAt: string
   campaign: { id: string; name: string; isOpen: boolean } | null
   statusHistory: StatusHistory[]
@@ -57,6 +57,10 @@ export default function CandidateDetailPage() {
   const [statusNote, setStatusNote] = useState('')
   const [statusError, setStatusError] = useState('')
   const [targetAppId, setTargetAppId] = useState('')
+  
+  const [showAppDeleteModal, setShowAppDeleteModal] = useState(false)
+  const [appDeleting, setAppDeleting] = useState(false)
+  const [currentUserRole, setCurrentUserRole] = useState('')
 
   const [showCloneModal, setShowCloneModal] = useState(false)
   const [campaigns, setCampaigns] = useState<{id: string, name: string}[]>([])
@@ -79,6 +83,10 @@ export default function CandidateDetailPage() {
     fetch('/api/campaigns?isOpen=true')
       .then(r => r.json())
       .then(d => setCampaigns(d.campaigns ?? []))
+      
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => setCurrentUserRole(d.user?.role ?? ''))
   }, [])
 
   useEffect(() => {
@@ -108,6 +116,21 @@ export default function CandidateDetailPage() {
     setDeleting(true)
     await fetch(`/api/candidates/${id}`, { method: 'DELETE' })
     router.push('/candidates')
+  }
+
+  const handleAppDelete = async () => {
+    if (!targetAppId) return
+    setAppDeleting(true)
+    const res = await fetch(`/api/applications/${targetAppId}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Đã xóa đơn ứng tuyển')
+      setShowAppDeleteModal(false)
+      fetchCandidate()
+    } else {
+      const d = await res.json()
+      toast.error(d.error || 'Lỗi khi xóa')
+    }
+    setAppDeleting(false)
   }
 
   const handleStatusUpdate = async () => {
@@ -335,7 +358,17 @@ export default function CandidateDetailPage() {
                 <div key={app.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div>
-                      <h3 className="font-bold text-lg text-slate-800">{app.appliedPosition}</h3>
+                      <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        {app.appliedPosition}
+                        {app.rawAppliedPosition && (
+                          <span className="relative group">
+                            <AlertTriangle className="w-4 h-4 text-amber-500 cursor-help" />
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                              AI trích xuất: "{app.rawAppliedPosition}" → Đã chuẩn hóa
+                            </span>
+                          </span>
+                        )}
+                      </h3>
                       <p className="text-sm text-slate-500 flex items-center gap-2 mt-1">
                         <Tag className="w-3.5 h-3.5" />
                         {app.campaign ? app.campaign.name : 'Không có đợt tuyển dụng'}
@@ -361,6 +394,13 @@ export default function CandidateDetailPage() {
                           className="px-2.5 py-1 text-[11px] font-medium rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors">
                           Từ chối...
                         </button>
+                        {['admin', 'hr', 'hr_manager'].includes(currentUserRole) && (
+                          <button 
+                            onClick={() => { setTargetAppId(app.id); setShowAppDeleteModal(true) }}
+                            className="px-2.5 py-1 text-[11px] font-medium rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+                            <Trash2 className="w-3 h-3 inline-block -mt-0.5 mr-0.5" /> Xóa
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -458,6 +498,21 @@ export default function CandidateDetailPage() {
         <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Hủy</Button>
           <Button variant="danger" loading={deleting} onClick={handleDelete}>Vẫn xóa hồ sơ</Button>
+        </div>
+      </Modal>
+
+      {/* Delete Application Modal */}
+      <Modal open={showAppDeleteModal} onClose={() => setShowAppDeleteModal(false)} title="Xác nhận xóa đơn ứng tuyển" size="sm">
+        <div className="p-4 bg-red-50 border border-red-100 rounded-xl mb-6 flex gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <div className="text-sm text-red-800">
+            <p className="font-semibold mb-1">Cảnh báo quan trọng!</p>
+            <p>Đơn ứng tuyển sẽ được đưa vào thùng rác.</p>
+          </div>
+        </div>
+        <div className="flex gap-3 justify-end">
+          <Button variant="outline" onClick={() => setShowAppDeleteModal(false)}>Hủy</Button>
+          <Button variant="danger" loading={appDeleting} onClick={handleAppDelete}>Xóa đơn ứng tuyển</Button>
         </div>
       </Modal>
 

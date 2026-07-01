@@ -121,6 +121,8 @@ export default function LoginPage() {
               {[
                 ['Admin', 'admin@gapsoftware.asia', 'Admin@123'],
                 ['HR', 'huong.tran@gapsoftware.asia', 'Hr@123456'],
+                ['HR Manager', 'lan.pham@gapsoftware.asia', 'Hr@123456'],
+                ['Hiring', 'tung.truong@gapsoftware.asia', 'Hr@123456'],
               ].map(([role, em, pw]) => (
                 <button key={em} type="button"
                   onClick={() => { setEmail(em); setPassword(pw) }}

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { parseCV } from '@/lib/cv-parser'
+import { normalizePosition } from '@/lib/utils'
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import path from 'path'
 import { v4 as uuid } from 'uuid'
@@ -42,7 +43,10 @@ export async function POST(req: NextRequest) {
       writeFileSync(fullPath, Buffer.from(await file.arrayBuffer()))
 
       const parsed = await parseCV(file.name, fullPath)
-      const appliedPosition = manualPosition || parsed.appliedPosition || 'Chưa xác định'
+      const rawAiPosition = parsed.appliedPosition || null
+      const appliedPosition = manualPosition || normalizePosition(parsed.appliedPosition)
+      // Lưu rawAppliedPosition nếu AI đã chuẩn hóa khác tên gốc
+      const rawAppliedPosition = (!manualPosition && rawAiPosition && rawAiPosition !== appliedPosition) ? rawAiPosition : null
 
       let candidate = undefined
       if (parsed.email) {
@@ -68,7 +72,7 @@ export async function POST(req: NextRequest) {
       let isDuplicate = false
       if (campaignId) {
         const existingApp = await db.application.findFirst({
-          where: { candidateId: candidate.id, campaignId, isDeleted: false }
+          where: { candidateId: candidate.id, campaignId, appliedPosition, isDeleted: false }
         })
         if (existingApp) isDuplicate = true
       }
@@ -82,6 +86,7 @@ export async function POST(req: NextRequest) {
           candidateId: candidate.id,
           campaignId: campaignId!,
           appliedPosition,
+          rawAppliedPosition,
           currentStatus: 'New',
           cvFilePath: `/uploads/${savedName}`,
           cvFileName: file.name,
@@ -128,7 +133,9 @@ export async function POST(req: NextRequest) {
           writeFileSync(fullPath, Buffer.from(await file.arrayBuffer()))
 
           const parsed = await parseCV(file.name, fullPath)
-          const appliedPosition = manualPosition || parsed.appliedPosition || 'Chưa xác định'
+          const rawAiPosition = parsed.appliedPosition || null
+          const appliedPosition = manualPosition || normalizePosition(parsed.appliedPosition)
+          const rawAppliedPosition = (!manualPosition && rawAiPosition && rawAiPosition !== appliedPosition) ? rawAiPosition : null
 
           let candidate = undefined
           if (parsed.email) {
@@ -151,7 +158,7 @@ export async function POST(req: NextRequest) {
           }
 
           const existingApp = await db.application.findFirst({
-            where: { candidateId: candidate.id, campaignId, isDeleted: false }
+            where: { candidateId: candidate.id, campaignId, appliedPosition, isDeleted: false }
           })
 
           if (existingApp) {
@@ -166,6 +173,7 @@ export async function POST(req: NextRequest) {
               candidateId: candidate.id,
               campaignId,
               appliedPosition,
+              rawAppliedPosition,
               currentStatus: 'New',
               cvFilePath: `/uploads/${savedName}`,
               cvFileName: file.name,

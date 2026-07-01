@@ -8,6 +8,7 @@ import {
   Upload, FileText, X, CheckCircle, AlertCircle, AlertTriangle,
   FolderOpen, ChevronRight,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 type UploadResult = { fileName: string; status: 'success' | 'failed' | 'duplicate'; message: string; candidateId?: string }
 
@@ -93,7 +94,7 @@ export default function UploadPage() {
     const data = await res.json()
     setSingleUploading(false)
     if (!res.ok) { setSingleError(data.error ?? 'Upload thất bại'); return }
-    import('sonner').then(m => m.toast.success('Đã phân tích xong: ' + (data.application?.appliedPosition || 'CV')))
+    toast.success('Upload và phân tích thành công: ' + (data.application?.appliedPosition || 'CV'))
     setSingleFile(null)
   }
 
@@ -122,6 +123,7 @@ export default function UploadPage() {
     const data = await res.json()
     setBulkUploading(false)
     if (!res.ok) { setBulkError(data.error ?? 'Upload thất bại'); return }
+    toast.success(`Upload hàng loạt hoàn tất (${valid.length} file)`)
     setBulkResults(data.results)
   }
 

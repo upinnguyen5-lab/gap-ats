@@ -18,12 +18,16 @@ interface User {
 
 const BADGE_COLORS: Record<string, string> = {
   admin: 'bg-purple-100 text-purple-700 border-purple-200',
+  hr_manager: 'bg-indigo-100 text-indigo-700 border-indigo-200',
   hr: 'bg-blue-100 text-blue-700 border-blue-200',
+  hiring: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 }
 
 const AVATAR_COLORS: Record<string, string> = {
   admin: '#7C3AED',
+  hr_manager: '#4F46E5',
   hr: '#2563EB',
+  hiring: '#10B981',
 }
 
 export default function UsersPage() {
@@ -114,8 +118,13 @@ export default function UsersPage() {
 
       <div className="flex-1 overflow-y-auto p-6">
         {/* Role legend */}
-        <div className="flex gap-3 mb-5">
-          {[['admin', 'Quản trị viên — toàn quyền hệ thống, quản lý người dùng, thùng rác'], ['hr', 'HR Recruiter — upload CV, quản lý ứng viên, cập nhật pipeline']].map(([role, desc]) => (
+        <div className="flex flex-wrap gap-3 mb-5">
+          {[
+            ['admin', 'Quản trị viên — toàn quyền hệ thống'],
+            ['hr_manager', 'HR Manager — có quyền thêm/mở đợt tuyển dụng'],
+            ['hr', 'HR Recruiter — upload CV, cập nhật pipeline'],
+            ['hiring', 'Hiring Manager — xem ứng viên từ vòng phỏng vấn']
+          ].map(([role, desc]) => (
             <div key={role} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs ${BADGE_COLORS[role]}`}>
               <div className="w-2 h-2 rounded-full" style={{ background: AVATAR_COLORS[role] }} />
               <span className="font-semibold capitalize">{ROLE_LABELS[role]}</span>
@@ -161,7 +170,9 @@ export default function UsersPage() {
                               className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-7"
                             >
                               <option value="admin">Quản trị viên</option>
+                              <option value="hr_manager">HR Manager</option>
                               <option value="hr">HR Recruiter</option>
+                              <option value="hiring">Hiring Manager</option>
                             </select>
                             <button
                               onClick={() => handleRoleChange(u.id, editRole || u.role)}
@@ -274,12 +285,15 @@ export default function UsersPage() {
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 pr-8"
               >
                 <option value="hr">HR Recruiter</option>
+                <option value="hr_manager">HR Manager</option>
+                <option value="hiring">Hiring Manager</option>
                 <option value="admin">Quản trị viên</option>
               </select>
               <p className="text-xs text-slate-400 mt-1.5">
-                {addForm.role === 'admin'
-                  ? '⚠️ Quản trị viên có toàn quyền hệ thống, bao gồm quản lý người dùng.'
-                  : 'HR Recruiter có thể upload CV, quản lý ứng viên và cập nhật pipeline.'}
+                {addForm.role === 'admin' && '⚠️ Quản trị viên có toàn quyền hệ thống, bao gồm quản lý người dùng.'}
+                {addForm.role === 'hr_manager' && 'HR Manager quản lý được các đợt tuyển dụng và ứng viên.'}
+                {addForm.role === 'hr' && 'HR Recruiter có thể upload CV, quản lý ứng viên và cập nhật pipeline.'}
+                {addForm.role === 'hiring' && 'Hiring Manager chỉ xem được ứng viên từ vòng Phỏng vấn trở đi.'}
               </p>
             </div>
             <div>

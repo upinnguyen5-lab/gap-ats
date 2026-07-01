@@ -25,6 +25,9 @@ export default function CampaignsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ name: '', kpiTarget: 0 })
+  const [showToggleModal, setShowToggleModal] = useState(false)
+  const [targetCampaign, setTargetCampaign] = useState<Campaign | null>(null)
+  const [toggling, setToggling] = useState(false)
 
   const fetchCampaigns = () => {
     setLoading(true)
@@ -71,14 +74,23 @@ export default function CampaignsPage() {
     }
   }
 
-  const handleToggleStatus = async (c: Campaign) => {
-    const res = await fetch(`/api/campaigns/${c.id}`, {
+  const handleToggleClick = (c: Campaign) => {
+    setTargetCampaign(c)
+    setShowToggleModal(true)
+  }
+
+  const confirmToggleStatus = async () => {
+    if (!targetCampaign) return
+    setToggling(true)
+    const res = await fetch(`/api/campaigns/${targetCampaign.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isOpen: !c.isOpen })
+      body: JSON.stringify({ isOpen: !targetCampaign.isOpen })
     })
+    setToggling(false)
     if (res.ok) {
-      toast.success(`Đã ${c.isOpen ? 'đóng' : 'mở'} đợt tuyển dụng`)
+      toast.success(`Đã ${targetCampaign.isOpen ? 'đóng' : 'mở'} đợt tuyển dụng`)
+      setShowToggleModal(false)
       fetchCampaigns()
     }
   }
@@ -155,7 +167,7 @@ export default function CampaignsPage() {
                     <td className="px-6 py-4 text-sm text-slate-500">{c.createdBy.fullName}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleToggleStatus(c)} className={`p-1.5 rounded-lg transition-colors ${c.isOpen ? 'text-amber-500 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'}`} title={c.isOpen ? 'Đóng đợt' : 'Mở lại đợt'}>
+                        <button onClick={() => handleToggleClick(c)} className={`p-1.5 rounded-lg transition-colors ${c.isOpen ? 'text-amber-500 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'}`} title={c.isOpen ? 'Đóng đợt' : 'Mở lại đợt'}>
                           {c.isOpen ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                         </button>
                         <button onClick={() => handleOpenModal(c)} className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title="Chỉnh sửa">
@@ -202,6 +214,20 @@ export default function CampaignsPage() {
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={() => setShowModal(false)}>Hủy</Button>
             <Button loading={isSubmitting} onClick={handleSubmit}>Lưu thay đổi</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showToggleModal} onClose={() => setShowToggleModal(false)} title="Xác nhận thay đổi trạng thái" size="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Bạn có chắc chắn muốn {targetCampaign?.isOpen ? <strong className="text-amber-600">đóng</strong> : <strong className="text-green-600">mở lại</strong>} đợt tuyển dụng <strong>{targetCampaign?.name}</strong>?
+          </p>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button variant="outline" onClick={() => setShowToggleModal(false)}>Hủy</Button>
+            <Button loading={toggling} variant={targetCampaign?.isOpen ? "outline" : "default"} onClick={confirmToggleStatus}>
+              Xác nhận {targetCampaign?.isOpen ? 'Đóng' : 'Mở'}
+            </Button>
           </div>
         </div>
       </Modal>

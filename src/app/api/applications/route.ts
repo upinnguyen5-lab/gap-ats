@@ -16,8 +16,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ applications: [] })
   }
 
+  const whereClause: any = { campaignId, isDeleted: false }
+  
+  if (payload.role === 'hiring') {
+    whereClause.currentStatus = { in: ['Interview', 'Hired', 'Rejected'] }
+  }
+
   const applications = await db.application.findMany({
-    where: { campaignId, isDeleted: false },
+    where: whereClause,
     include: {
       candidate: { select: { fullName: true, email: true, phone: true, skills: true, yearsExperience: true } },
     },
@@ -49,7 +55,7 @@ export async function POST(req: NextRequest) {
   }
 
   const existingApp = await db.application.findFirst({
-    where: { candidateId, campaignId, isDeleted: false }
+    where: { candidateId, campaignId, appliedPosition, isDeleted: false }
   })
 
   if (existingApp) {
