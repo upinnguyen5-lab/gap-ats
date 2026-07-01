@@ -125,7 +125,10 @@ export default function DashboardPage() {
                       nameKey="status"
                       animationDuration={800}
                     >
-                      {distribution.filter(d => d.count > 0).map((entry, index) => (
+                      {[...distribution.filter(d => d.count > 0)].sort((a, b) => {
+                        const statusOrder = ['New', 'Screening', 'Interview', 'Hired', 'Rejected'];
+                        return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+                      }).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] ?? '#9CA3AF'} />
                       ))}
                     </Pie>
