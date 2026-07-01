@@ -225,7 +225,7 @@ export default function CampaignsPage() {
           </p>
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={() => setShowToggleModal(false)}>Hủy</Button>
-            <Button loading={toggling} variant={targetCampaign?.isOpen ? "outline" : "default"} onClick={confirmToggleStatus}>
+            <Button loading={toggling} variant={targetCampaign?.isOpen ? "outline" : "primary"} onClick={confirmToggleStatus}>
               Xác nhận {targetCampaign?.isOpen ? 'Đóng' : 'Mở'}
             </Button>
           </div>
