@@ -110,13 +110,18 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={distribution.filter(d => d.count > 0)}
+                      data={[...distribution.filter(d => d.count > 0)].sort((a, b) => {
+                        const statusOrder = ['New', 'Screening', 'Interview', 'Hired', 'Rejected'];
+                        return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+                      })}
                       cx="50%"
                       cy="50%"
                       innerRadius={65}
                       outerRadius={85}
                       paddingAngle={5}
                       dataKey="count"
+                      startAngle={90}
+                      endAngle={-270}
                       nameKey="status"
                       animationDuration={800}
                     >
