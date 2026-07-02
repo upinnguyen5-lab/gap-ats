@@ -44,6 +44,7 @@ async function main() {
   await prisma.application.deleteMany()
   await prisma.campaign.deleteMany()
   await prisma.candidate.deleteMany()
+  await prisma.position.deleteMany()
   await prisma.user.deleteMany()
 
   // Create users
