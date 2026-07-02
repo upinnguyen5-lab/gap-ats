@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { formatDateTime, STATUS_LIST, POSITIONS } from '@/lib/utils'
 import {
   ArrowLeft, Edit2, Save, X, Trash2, Download, AlertTriangle,
-  AlertCircle, CheckCircle, Clock, User, Briefcase, Tag, Plus, GitBranch, Copy, Mail, Phone, Calendar
+  AlertCircle, CheckCircle, Clock, User, Briefcase, Tag, Plus, GitBranch, Copy, Mail, Phone, Calendar, Upload
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -73,6 +73,8 @@ export default function CandidateDetailPage() {
   const [editPosAppId, setEditPosAppId] = useState('')
   const [newPosition, setNewPosition] = useState('')
   const [editPosLoading, setEditPosLoading] = useState(false)
+
+  const [uploadingCvId, setUploadingCvId] = useState<string | null>(null)
 
   const fetchCandidate = () => {
     fetch(`/api/candidates/${id}`)
@@ -216,6 +218,28 @@ export default function CandidateDetailPage() {
       toast.error('Lỗi khi cập nhật vị trí')
     }
     setEditPosLoading(false)
+  }
+
+  const handleUploadCV = async (appId: string, file: File) => {
+    setUploadingCvId(appId)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`/api/applications/${appId}/upload-cv`, {
+        method: 'POST',
+        body: formData
+      })
+      if (res.ok) {
+        toast.success('Đã tải lên CV thành công')
+        fetchCandidate()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Lỗi khi tải lên CV')
+      }
+    } catch {
+      toast.error('Đã xảy ra lỗi khi tải lên CV')
+    }
+    setUploadingCvId(null)
   }
 
   if (loading) return (
@@ -464,16 +488,34 @@ export default function CandidateDetailPage() {
 
                         <div>
                           <p className="text-xs text-slate-500 mb-1">File CV đính kèm</p>
-                          {app.cvFilePath ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-slate-700 truncate max-w-[200px]">{app.cvFileName}</span>
-                              <Link href={app.cvFilePath} target="_blank" className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Tải xuống">
-                                <Download className="w-4 h-4" />
-                              </Link>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-slate-500 italic">Không có file</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {app.cvFilePath ? (
+                              <>
+                                <span className="text-sm font-medium text-slate-700 truncate max-w-[150px]">{app.cvFileName}</span>
+                                <Link href={app.cvFilePath} target="_blank" className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Tải xuống">
+                                  <Download className="w-4 h-4" />
+                                </Link>
+                              </>
+                            ) : (
+                              <span className="text-sm text-slate-500 italic mr-2">Không có file</span>
+                            )}
+                            <button 
+                              disabled={uploadingCvId === app.id}
+                              onClick={() => {
+                                const input = document.createElement('input')
+                                input.type = 'file'
+                                input.accept = '.pdf,.doc,.docx'
+                                input.onchange = (e: any) => {
+                                  const file = e.target.files?.[0]
+                                  if (file) handleUploadCV(app.id, file)
+                                }
+                                input.click()
+                              }}
+                              className="px-2 py-1 bg-slate-100 text-slate-600 text-[11px] font-medium rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1 disabled:opacity-50"
+                            >
+                              <Upload className="w-3 h-3" /> {uploadingCvId === app.id ? 'Đang tải...' : (app.cvFilePath ? 'Đổi CV' : 'Tải lên CV')}
+                            </button>
+                          </div>
                         </div>
 
                         <div>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { SkeletonTable } from '@/components/ui/Skeleton'
 import { formatDateTime, formatRelativeTime, STATUS_LABELS, STATUS_LIST, formatDate, POSITIONS } from '@/lib/utils'
-import { Search, Upload, Eye, Trash2, X, Filter, ChevronLeft, ChevronRight, CheckCircle, ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react'
+import { Search, Upload, Eye, Trash2, X, Filter, ChevronLeft, ChevronRight, CheckCircle, ChevronDown, AlertTriangle, AlertCircle, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Candidate {
@@ -44,6 +44,15 @@ export default function CandidatesPage() {
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
 
   const [campaigns, setCampaigns] = useState<{id: string, name: string}[]>([])
+
+  const [userRole, setUserRole] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+  const [newCandidate, setNewCandidate] = useState({ fullName: '', email: '', phone: '', appliedPosition: '', campaignId: '', yearsExperience: '', skills: '', notes: '' })
+
+  useEffect(() => {
+    fetch('/api/auth/me').then(r => r.json()).then(d => { if (d?.user) setUserRole(d.user.role) })
+  }, [])
 
   // Update local state when URL changes (e.g., user hits Back button)
   useEffect(() => {
@@ -145,6 +154,35 @@ export default function CandidatesPage() {
     setBulkDeleteLoading(false)
   }
 
+  const handleCreate = async () => {
+    if (!newCandidate.fullName || !newCandidate.email || !newCandidate.appliedPosition || !newCandidate.campaignId) {
+      toast.error('Vui lòng điền đủ Tên, Email, Vị trí và Đợt tuyển dụng')
+      return
+    }
+    setCreateLoading(true)
+    try {
+      const skillsArray = newCandidate.skills ? newCandidate.skills.split(',').map(s => s.trim()).filter(Boolean) : []
+      const res = await fetch('/api/candidates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newCandidate, skills: skillsArray })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success('Đã tạo hồ sơ ứng viên thành công!')
+        setShowCreateModal(false)
+        setNewCandidate({ fullName: '', email: '', phone: '', appliedPosition: '', campaignId: '', yearsExperience: '', skills: '', notes: '' })
+        fetchCandidates(1)
+        router.push(`/candidates/${data.candidate.id}`)
+      } else {
+        toast.error(data.error || 'Lỗi khi tạo ứng viên')
+      }
+    } catch {
+      toast.error('Đã xảy ra lỗi, vui lòng thử lại')
+    }
+    setCreateLoading(false)
+  }
+
   const handleQuickStatus = async (id: string, newStatus: string) => {
     // Redirect to candidate details page for any status change to avoid confusion with multiple apps
     router.push(`/candidates/${id}`)
@@ -171,8 +209,13 @@ export default function CandidatesPage() {
                 Xóa {selectedIds.length} mục
               </button>
             )}
+            {['admin', 'hr_manager', 'hr'].includes(userRole) && (
+              <Button size="sm" variant="outline" onClick={() => setShowCreateModal(true)}>
+                <UserPlus className="w-4 h-4 mr-1.5" />Tạo thủ công
+              </Button>
+            )}
             <Link href="/upload">
-              <Button size="sm"><Upload className="w-4 h-4" />Upload CV</Button>
+              <Button size="sm"><Upload className="w-4 h-4 mr-1.5" />Upload CV</Button>
             </Link>
           </div>
         }
@@ -379,6 +422,70 @@ export default function CandidatesPage() {
         <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={() => setDeleteId(null)}>Hủy</Button>
           <Button variant="danger" loading={deleteLoading} onClick={handleDelete}>Xác nhận xóa</Button>
+        </div>
+      </Modal>
+
+      {/* Create Candidate Modal */}
+      <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)} title="Tạo hồ sơ ứng viên" size="md">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Họ tên *</label>
+              <input type="text" value={newCandidate.fullName} onChange={e => setNewCandidate({...newCandidate, fullName: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" placeholder="VD: Nguyễn Văn A" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Email *</label>
+              <input type="email" value={newCandidate.email} onChange={e => setNewCandidate({...newCandidate, email: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" placeholder="VD: email@example.com" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Số điện thoại</label>
+              <input type="text" value={newCandidate.phone} onChange={e => setNewCandidate({...newCandidate, phone: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" placeholder="VD: 0912345678" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Số năm kinh nghiệm</label>
+              <input type="number" step="0.5" value={newCandidate.yearsExperience} onChange={e => setNewCandidate({...newCandidate, yearsExperience: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" placeholder="VD: 2.5" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Đợt tuyển dụng *</label>
+              <select value={newCandidate.campaignId} onChange={e => setNewCandidate({...newCandidate, campaignId: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">
+                <option value="">Chọn đợt tuyển dụng...</option>
+                {campaigns.filter(c => c.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Vị trí ứng tuyển *</label>
+              <select value={newCandidate.appliedPosition} onChange={e => setNewCandidate({...newCandidate, appliedPosition: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">
+                <option value="">Chọn vị trí...</option>
+                {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Kỹ năng (cách nhau bằng dấu phẩy)</label>
+            <input type="text" value={newCandidate.skills} onChange={e => setNewCandidate({...newCandidate, skills: e.target.value})}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" placeholder="VD: React, Node.js, TypeScript" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Ghi chú thêm</label>
+            <textarea value={newCandidate.notes} onChange={e => setNewCandidate({...newCandidate, notes: e.target.value})} rows={3}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" placeholder="Thông tin bổ sung..." />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>Hủy</Button>
+            <Button onClick={handleCreate} loading={createLoading}>Tạo hồ sơ</Button>
+          </div>
         </div>
       </Modal>
     </div>
